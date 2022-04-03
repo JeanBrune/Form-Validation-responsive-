@@ -118,6 +118,12 @@ button{
     margin-right: 100px;
     width: 150px;
     }
+
+#usuario{
+    width: 302px;
+}
+
+
 }
 
 @media (min-width: 992px){
