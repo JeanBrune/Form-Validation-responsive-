@@ -19,7 +19,7 @@ class ValidarCadastro {
     eventos() {
         //capturar o clique em enviar
         this.formulario.addEventListener('click', evento => {
-            //executar o evento que faz todas as checagens
+            //previnir que o click em qualquer local do formulario repita ação do enviar
             evento.preventDefault()
         })
 
@@ -28,15 +28,15 @@ class ValidarCadastro {
         })
 
         this.enviarBtn.addEventListener('click', evento => {
-            this.enviar(evento)
+            this.enviar()
         })
     }
 
 
     //função de envio
-    enviar(evento) {
-        //previnir que o formulario seja enviado sem validação
-        evento.preventDefault()
+    enviar() {
+        //remover erros já existentes na tela como controle
+        this.removerErro()
         //verificar se todos os campos estão preenchidos
         const camposPreenchidos = this.camposPreenchidos()
         //verificar se é um CPF válido
@@ -49,6 +49,7 @@ class ValidarCadastro {
         const verificarSenha = this.verificarSenha()
         //verificar se a senha repetida é igual ao campo anterior
         const verificarRepetir = this.verificarRepetir()
+
 
         //verificar se todas as flags são true antes de permitir o envio
         console.log(
@@ -75,8 +76,6 @@ class ValidarCadastro {
     camposPreenchidos() {
         //setar uma flag de controle antes da checagem
         let valido = true
-        //remover todas as mensagens de erro do formulário, como controle
-        this.removerErro()
         //varrer os inputs de dentro formulario para verificação
         for (let input of this.formulario.querySelectorAll('input')) {
             //armazenar o label de cada campo sendo iterado, para indicar, caso exista erro
@@ -100,12 +99,15 @@ class ValidarCadastro {
         if (CPF.valida()) {
             valido = true
             console.log("cpf válidado com sucesso")
-        } else {
+        } else if (inputCPF.value !== "") {
             this.AvisoErro(inputCPF, "CPF inválido")
+            console.log('bad cpf')
+            valido = false
+        } else {
             valido = false
         }
         return valido
-        
+
     }
 
     //funçao de exibir o erro para o usuário
@@ -137,15 +139,11 @@ class ValidarCadastro {
         //verificar se tem @
         if (inputEmail.value.includes('@')) {
             //executar a função de validação
-            //remover mensagens de erro
-            this.removerErro()
             //extrair o valor do campo input de email
             const emailValor = inputEmail.value
             //dividir o email entre nome de usuário e provedor
             let usuarioEmail = emailValor.substring(0, emailValor.indexOf("@"))
             let servidorEmail = emailValor.substring(emailValor.indexOf("@") + 1, emailValor.length)
-            //executar função de verificação de outros campos vazios
-            this.camposPreenchidos()
             //validar o email
             if (
                 //verificar se tem tem tamanho mínimo de caracteres
@@ -165,7 +163,6 @@ class ValidarCadastro {
             }
         } else if (inputEmail.value == "") {
             valido = false
-            this.camposPreenchidos()
         } else {
             valido = false
             this.AvisoErro(inputEmail, `O formato de "${inputEmail.value}" não é um email válido`)
@@ -176,7 +173,7 @@ class ValidarCadastro {
     //função de validação de nome de usuário
     verificarUsuario() {
         //criar variavel de controle
-        let valido = true
+        let valido
 
         //capturar o campo de usuario
         const usuario = document.querySelector('#usuario')
@@ -184,16 +181,19 @@ class ValidarCadastro {
         //criar variavel de teste de caracteres
         const regex = /[a-zA-Z]/g
 
-        //verificar se o usuário tem mínimo de 3 e maximo de 12 caracteres
-        if (nick.length <= 2 || nick.length >= 13) {
-            valido = false
-            this.AvisoErro(usuario, 'O nome de usuário deve conter entre 3 e 12 caracteres')
-            //verificar se o usuário é composto de ao menos uma letra
-        } else if (!regex.test(nick)) {
-            this.AvisoErro(usuario, 'O nome de usuário deve conter ao menos uma letra')
-            valido = false
-        } else {
-            console.log('nick valido')
+        if (nick !== "") {
+            //verificar se o usuário tem mínimo de 3 e maximo de 12 caracteres
+            if (nick.length <= 2 || nick.length >= 13) {
+                valido = false
+                this.AvisoErro(usuario, 'O nome de usuário deve conter entre 3 e 12 caracteres')
+                //verificar se o usuário é composto de ao menos uma letra
+            } else if (!regex.test(nick)) {
+                this.AvisoErro(usuario, 'O nome de usuário deve conter ao menos uma letra')
+                valido = false
+            } else {
+                valido = true
+                console.log('nick valido')
+            }
         }
         return valido
     }
@@ -201,23 +201,27 @@ class ValidarCadastro {
     //Função de validação de senha
     verificarSenha() {
         //criar variavel de controle
-        let valido = true
+        let valido
         //capturar o campo de senha
         const senha = document.querySelector('#senha')
         const senhaValor = senha.value
         //criar variavel de teste de caractere
         const regex = /^(?:[0-9]+[a-z]|[a-z]+[0-9])[a-z0-9]*$/i
 
-        //verificar se a senha tem o tamanho mínimo requerido
-        if (senhaValor.length < 6) {
-            this.AvisoErro(senha, 'A senha deve ter, no mínimo, 6 caracteres')
-            valido = false
-            //verificar se a senha tem ao menos uma letra e um número
-        } else if (!regex.test(senhaValor)) {
-            this.AvisoErro(senha, 'A senha deve conter ao menos uma letra e um número')
-            valido = false
-        } else {
-            console.log('senha válida')
+        if (senhaValor !== "") {
+            //verificar se a senha tem o tamanho mínimo requerido
+            if (senhaValor.length < 6) {
+                this.AvisoErro(senha, 'A senha deve ter, no mínimo, 6 caracteres')
+                valido = false
+                //verificar se a senha tem ao menos uma letra e um número
+            } else if (!regex.test(senhaValor)) {
+                this.AvisoErro(senha, 'A senha deve conter ao menos uma letra e um número')
+                valido = false
+            } else {
+                valido = true
+                console.log('senha válida')
+            }
+
         }
         return valido
     }
@@ -230,13 +234,15 @@ class ValidarCadastro {
         const senha = document.querySelector('#senha')
         const repetir = document.querySelector('#senha_repetir')
 
-        //verificar se os campos estão iguais
-        if (senha.value == repetir.value && repetir.value !== "") {
-            console.log("igualdade de senhas verificada com sucesso")
-            valido = true
-        } else {
-            valido = false
-            this.AvisoErro(repetir, "Os campos de senha e de repetir a senha devem estar iguais")
+        if(repetir.value !==""){
+            //verificar se os campos estão iguais
+            if (senha.value == repetir.value && repetir.value !== "") {
+                console.log("igualdade de senhas verificada com sucesso")
+                valido = true
+            } else {
+                valido = false
+                this.AvisoErro(repetir, "Os campos de senha e de repetir a senha devem estar iguais")
+            }
         }
         return valido
     }
